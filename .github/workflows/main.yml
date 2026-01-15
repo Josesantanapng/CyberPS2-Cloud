@@ -1,0 +1,38 @@
+name: CyberPS2 Build
+on: [push, workflow_dispatch]
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Clone Play! Emulator
+        run: git clone --recursive https://github.com/jpd002/Play-
+
+      # PASO NUEVO: Diagnóstico (para ver qué carpetas existen realmente)
+      - name: Listar archivos (Debug)
+        run: ls -R Play- | grep ":$" | head -n 20
+
+      - name: Build Debug APK
+        # AQUÍ ESTABA EL ERROR: Cambiamos 'project/Android' por 'build_android'
+        working-directory: ./Play-/build_android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CyberPS2-Alpha
+          # Ajustamos la ruta de salida también
+          path: Play-/build_android/app/build/outputs/apk/debug/app-debug.apk
